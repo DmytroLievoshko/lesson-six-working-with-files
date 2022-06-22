@@ -72,6 +72,8 @@ instance/
 docs/_build/
 
 # PyBuilder
+
+.vscode
 target/
 
 # Jupyter Notebook

@@ -6,8 +6,7 @@ def main():
 
     quantity_args = len(sys.argv)-1
     if quantity_args < 1 or quantity_args > 1:
-        print(
-            f'The script must take 1 argument! now there are {quantity_args} arguments.')
+        print(f'The script must take 1 arg! There are {quantity_args} args.')
         return
 
     user_path = pathlib.Path(sys.argv[1])

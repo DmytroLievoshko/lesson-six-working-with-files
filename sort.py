@@ -1,6 +1,7 @@
 import pathlib
 import sys
 import re
+import shutil
 
 
 def images_processing(path: pathlib.Path, position_of_processed_files: int):
@@ -45,7 +46,9 @@ def archives_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    path.rename(folder.joinpath(new_name + path.suffix))
+    path = path.rename(folder.joinpath(new_name + path.suffix))
+    shutil.unpack_archive(path, folder.joinpath(new_name))
+    path.unlink()
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int):

@@ -1,5 +1,6 @@
 import pathlib
 import sys
+import re
 
 
 def images_processing(path: pathlib.Path, position_of_processed_files: int):
@@ -48,6 +49,7 @@ def archives_processing(path: pathlib.Path, position_of_processed_files: int):
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
+
     folder = path.parents[position_of_processed_files].joinpath('unknown')
     if not folder.exists():
         folder.mkdir()
@@ -56,6 +58,8 @@ def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
 
 def normalize(path_name: str) -> str:
 
+    path_name = path_name.translate(TRANS)
+    path_name = re.sub(r'\W', r'_', path_name)
     return path_name
 
 
@@ -64,11 +68,11 @@ def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
     for sub_path in path.iterdir():
 
         if sub_path.is_dir():
-            if sub_path.name not in settings['ignored_folders']:
+            if sub_path.name not in SETTINGS['ignored_folders']:
                 sort_dir(sub_path, position_of_processed_files + 1)
         else:
             extension = sub_path.suffix.lstrip('.').upper()
-            processing_func = settings['file_extensions'].get(extension)
+            processing_func = SETTINGS['file_extensions'].get(extension)
             if processing_func:
                 processing_func(sub_path, position_of_processed_files)
             else:
@@ -77,12 +81,21 @@ def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
         path.rmdir()
 
 
-settings = {'file_extensions': {'JPEG': images_processing, 'PNG': images_processing, 'JPG': images_processing, 'SVG': images_processing,
+SETTINGS = {'file_extensions': {'JPEG': images_processing, 'PNG': images_processing, 'JPG': images_processing, 'SVG': images_processing,
                                 'AVI': video_processing, 'MP4': video_processing, 'MOV': video_processing, 'MKV': video_processing,
                                 'DOC': documents_processing, 'DOCX': documents_processing, 'TXT': documents_processing, 'PDF': documents_processing, 'XLSX': documents_processing, 'PPTX': documents_processing,
                                 'MP3': audio_processing, 'OGG': audio_processing, 'WAV': audio_processing, 'AMR': audio_processing,
                                 'ZIP': archives_processing, 'GZ': archives_processing, 'TAR': archives_processing},
             'ignored_folders': ['images', 'documents', 'audio', 'video', 'archives']}
+
+CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
+TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
+               "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
+
+TRANS = {}
+for c, l in zip(CYRILLIC_SYMBOLS, TRANSLATION):
+    TRANS[ord(c)] = l
+    TRANS[ord(c.upper())] = l.title()
 
 
 def main():

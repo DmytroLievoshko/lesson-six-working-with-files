@@ -2,7 +2,7 @@ import pathlib
 import sys
 
 
-def images_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def images_processing(path: pathlib.Path, position_of_processed_files: int):
 
     folder = path.parents[position_of_processed_files].joinpath('images')
     if not folder.exists():
@@ -11,7 +11,7 @@ def images_processing(path: pathlib.WindowsPath, position_of_processed_files):
     path.rename(folder.joinpath(new_name + path.suffix))
 
 
-def video_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def video_processing(path: pathlib.Path, position_of_processed_files: int):
 
     folder = path.parents[position_of_processed_files].joinpath('video')
     if not folder.exists():
@@ -20,7 +20,7 @@ def video_processing(path: pathlib.WindowsPath, position_of_processed_files):
     path.rename(folder.joinpath(new_name + path.suffix))
 
 
-def documents_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def documents_processing(path: pathlib.Path, position_of_processed_files: int):
 
     folder = path.parents[position_of_processed_files].joinpath('documents')
     if not folder.exists():
@@ -29,7 +29,7 @@ def documents_processing(path: pathlib.WindowsPath, position_of_processed_files)
     path.rename(folder.joinpath(new_name + path.suffix))
 
 
-def audio_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def audio_processing(path: pathlib.Path, position_of_processed_files: int):
 
     folder = path.parents[position_of_processed_files].joinpath('audio')
     if not folder.exists():
@@ -38,7 +38,7 @@ def audio_processing(path: pathlib.WindowsPath, position_of_processed_files):
     path.rename(folder.joinpath(new_name + path.suffix))
 
 
-def archives_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def archives_processing(path: pathlib.Path, position_of_processed_files: int):
 
     folder = path.parents[position_of_processed_files].joinpath('archives')
     if not folder.exists():
@@ -47,19 +47,19 @@ def archives_processing(path: pathlib.WindowsPath, position_of_processed_files):
     path.rename(folder.joinpath(new_name + path.suffix))
 
 
-def unknown_processing(path: pathlib.WindowsPath, position_of_processed_files):
+def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
     folder = path.parents[position_of_processed_files].joinpath('unknown')
     if not folder.exists():
         folder.mkdir()
     path.rename(folder.joinpath(path.name))
 
 
-def normalize(path_name):
+def normalize(path_name: str) -> str:
 
     return path_name
 
 
-def sort_dir(path: pathlib.WindowsPath, position_of_processed_files=0):
+def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
 
     for sub_path in path.iterdir():
 

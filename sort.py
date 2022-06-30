@@ -10,6 +10,7 @@ def images_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
+    # FileExistsError
     new_path = path.rename(folder.joinpath(new_name + path.suffix))
     add_log(path, new_path)
 
@@ -20,6 +21,7 @@ def video_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
+    # FileExistsError
     new_path = path.rename(folder.joinpath(new_name + path.suffix))
     add_log(path, new_path)
 
@@ -30,6 +32,7 @@ def documents_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
+    # FileExistsError
     new_path = path.rename(folder.joinpath(new_name + path.suffix))
     add_log(path, new_path)
 
@@ -40,6 +43,7 @@ def audio_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
+    # FileExistsError
     new_path = path.rename(folder.joinpath(new_name + path.suffix))
     add_log(path, new_path)
 
@@ -50,10 +54,9 @@ def archives_processing(path: pathlib.Path, position_of_processed_files: int):
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    new_path = path.rename(folder.joinpath(new_name + path.suffix))
-    shutil.unpack_archive(new_path, folder.joinpath(new_name))
-    new_path.unlink()
-    add_log(path, new_path)
+    shutil.unpack_archive(path, folder.joinpath(new_name))
+    path.unlink()
+    add_log(path, path)
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
@@ -61,6 +64,7 @@ def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
     folder = path.parents[position_of_processed_files].joinpath('unknown')
     if not folder.exists():
         folder.mkdir()
+    # FileExistsError
     new_path = path.rename(folder.joinpath(path.name))
     add_log(path, new_path)
 
@@ -113,28 +117,27 @@ def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
 
     for sub_path in path.iterdir():
 
-        if sub_path.name in SETTINGS['ignored_folders']:
+        if sub_path.name in IGNORED_FOLDERS:
             continue
 
         if sub_path.is_dir():
             sort_dir(sub_path, position_of_processed_files + 1)
         else:
             extension = sub_path.suffix.lstrip('.').upper()
-            processing_func = SETTINGS['file_extensions'].get(extension)
-            if processing_func:
-                processing_func(sub_path, position_of_processed_files)
-            else:
-                unknown_processing(sub_path, position_of_processed_files)
+
+            FILE_EXTENSIONS.get(extension, unknown_processing)(
+                sub_path, position_of_processed_files)
+
     if not list(path.iterdir()):
         path.rmdir()
 
 
-SETTINGS = {'file_extensions': {'BMP': images_processing, 'JPEG': images_processing, 'PNG': images_processing, 'JPG': images_processing, 'SVG': images_processing,
-                                'AVI': video_processing, 'MP4': video_processing, 'MOV': video_processing, 'MKV': video_processing,
-                                'DOC': documents_processing, 'DOCX': documents_processing, 'TXT': documents_processing, 'PDF': documents_processing, 'XLSX': documents_processing, 'PPTX': documents_processing,
-                                'MP3': audio_processing, 'OGG': audio_processing, 'WAV': audio_processing, 'AMR': audio_processing,
-                                'ZIP': archives_processing, 'GZ': archives_processing, 'TAR': archives_processing},
-            'ignored_folders': ['images', 'documents', 'audio', 'video', 'archives', 'log.txt']}
+FILE_EXTENSIONS = {'BMP': images_processing, 'JPEG': images_processing, 'PNG': images_processing, 'JPG': images_processing, 'SVG': images_processing,
+                   'AVI': video_processing, 'MP4': video_processing, 'MOV': video_processing, 'MKV': video_processing,
+                   'DOC': documents_processing, 'DOCX': documents_processing, 'TXT': documents_processing, 'PDF': documents_processing, 'XLSX': documents_processing, 'PPTX': documents_processing,
+                   'MP3': audio_processing, 'OGG': audio_processing, 'WAV': audio_processing, 'AMR': audio_processing,
+                   'ZIP': archives_processing, 'GZ': archives_processing, 'TAR': archives_processing}
+IGNORED_FOLDERS = ['images', 'documents', 'audio', 'video', 'archives']
 
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
 TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",

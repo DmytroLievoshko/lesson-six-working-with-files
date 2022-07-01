@@ -4,9 +4,9 @@ import re
 import shutil
 
 
-def images_processing(path: pathlib.Path, position_of_processed_files: int):
+def images_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('images')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
@@ -15,9 +15,9 @@ def images_processing(path: pathlib.Path, position_of_processed_files: int):
     add_log(path, new_path)
 
 
-def video_processing(path: pathlib.Path, position_of_processed_files: int):
+def video_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('video')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
@@ -26,9 +26,9 @@ def video_processing(path: pathlib.Path, position_of_processed_files: int):
     add_log(path, new_path)
 
 
-def documents_processing(path: pathlib.Path, position_of_processed_files: int):
+def documents_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('documents')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
@@ -37,9 +37,9 @@ def documents_processing(path: pathlib.Path, position_of_processed_files: int):
     add_log(path, new_path)
 
 
-def audio_processing(path: pathlib.Path, position_of_processed_files: int):
+def audio_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('audio')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
@@ -48,9 +48,9 @@ def audio_processing(path: pathlib.Path, position_of_processed_files: int):
     add_log(path, new_path)
 
 
-def archives_processing(path: pathlib.Path, position_of_processed_files: int):
+def archives_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('archives')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
@@ -59,9 +59,9 @@ def archives_processing(path: pathlib.Path, position_of_processed_files: int):
     add_log(path, path)
 
 
-def unknown_processing(path: pathlib.Path, position_of_processed_files: int):
+def unknown_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    folder = path.parents[position_of_processed_files].joinpath('unknown')
+    folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     # FileExistsError
@@ -125,19 +125,23 @@ def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
         else:
             extension = sub_path.suffix.lstrip('.').upper()
 
-            FILE_EXTENSIONS.get(extension, unknown_processing)(
-                sub_path, position_of_processed_files)
+            tuple_setting = SETTINGS.get(
+                extension, (unknown_processing, 'unknown'))
+
+            tuple_setting[0](
+                sub_path, position_of_processed_files, tuple_setting[1])
 
     if not list(path.iterdir()):
         path.rmdir()
 
 
-FILE_EXTENSIONS = {'BMP': images_processing, 'JPEG': images_processing, 'PNG': images_processing, 'JPG': images_processing, 'SVG': images_processing,
-                   'AVI': video_processing, 'MP4': video_processing, 'MOV': video_processing, 'MKV': video_processing,
-                   'DOC': documents_processing, 'DOCX': documents_processing, 'TXT': documents_processing, 'PDF': documents_processing, 'XLSX': documents_processing, 'PPTX': documents_processing,
-                   'MP3': audio_processing, 'OGG': audio_processing, 'WAV': audio_processing, 'AMR': audio_processing,
-                   'ZIP': archives_processing, 'GZ': archives_processing, 'TAR': archives_processing}
-IGNORED_FOLDERS = ['images', 'documents', 'audio', 'video', 'archives']
+SETTINGS = {'BMP': (images_processing, 'images'), 'JPEG': (images_processing, 'images'), 'PNG': (images_processing, 'images'), 'JPG': (images_processing, 'images'), 'SVG': (images_processing, 'images'),
+            'AVI': (video_processing, 'video'), 'MP4': (video_processing, 'video'), 'MOV': (video_processing, 'video'), 'MKV': (video_processing, 'video'),
+            'DOC': (documents_processing, 'documents'), 'DOCX': (documents_processing, 'documents'), 'TXT': (documents_processing, 'documents'), 'PDF': (documents_processing, 'documents'), 'XLSX': (documents_processing, 'documents'), 'PPTX': (documents_processing, 'documents'),
+            'MP3': (audio_processing, 'audio'), 'OGG': (audio_processing, 'audio'), 'WAV': (audio_processing, 'audio'), 'AMR': (audio_processing, 'audio'),
+            'ZIP': (archives_processing, 'archives'), 'GZ': (archives_processing, 'archives'), 'TAR': (archives_processing, 'archives')}
+
+IGNORED_FOLDERS = {tuple_setting[1] for tuple_setting in SETTINGS.values()}
 
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
 TRANSLATION = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",

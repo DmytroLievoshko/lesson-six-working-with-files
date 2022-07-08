@@ -8,84 +8,100 @@ import shutil
 def images_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-    SET_KNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    # FileExistsError
-    new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    try:
+        new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    except FileExistsError:
+        print(f'failed to write file {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name)
 
 
 def video_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-    SET_KNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    # FileExistsError
-    new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    try:
+        new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    except FileExistsError:
+        print(f'failed to write file {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name)
 
 
 def documents_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-    SET_KNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    # FileExistsError
-    new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    try:
+        new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    except FileExistsError:
+        print(f'failed to write file {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name)
 
 
 def audio_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-    SET_KNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    # FileExistsError
-    new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    try:
+        new_path = path.rename(folder.joinpath(new_name + path.suffix))
+    except FileExistsError:
+        print(f'failed to write file {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name)
 
 
 def archives_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-    SET_KNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
     new_name = normalize(path.stem)
-    shutil.unpack_archive(path, folder.joinpath(new_name))
-    path.unlink()
+    try:
+        shutil.unpack_archive(path, folder.joinpath(new_name))
+    except FileExistsError:
+        print(f'failed to extract archive {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name)
+        try:
+            path.unlink()
+        except FileExistsError:
+            print(f'failed to delete file {path.name}')
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
     global DICT_FILES_BY_CATEGORIES, SET_UNKNOWN_FILE_EXTENSIONS
-    SET_UNKNOWN_FILE_EXTENSIONS.add(path.suffix.lstrip('.').upper())
-    DICT_FILES_BY_CATEGORIES.setdefault(folder_name, []).append(path.name)
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
-    # FileExistsError
-    new_path = path.rename(folder.joinpath(path.name))
+    try:
+        new_path = path.rename(folder.joinpath(path.name))
+    except FileExistsError:
+        print(f'failed to write file {path.name}')
+    else:
+        add_to_log(path.suffix, path.name, folder_name, True)
 
 
 def normalize(path_name: str) -> str:
@@ -93,6 +109,34 @@ def normalize(path_name: str) -> str:
     path_name = path_name.translate(TRANS)
     path_name = re.sub(r'\W', r'_', path_name)
     return path_name
+
+
+def add_to_log(extension: str, file_name: str, categorie: str, unknown: bool = False):
+
+    if unknown:
+        SET_UNKNOWN_FILE_EXTENSIONS.add(extension.lstrip('.').upper())
+    else:
+        SET_KNOWN_FILE_EXTENSIONS.add(extension.lstrip('.').upper())
+
+    DICT_FILES_BY_CATEGORIES.setdefault(categorie, []).append(file_name)
+
+
+def log_print():
+
+    print_str = f"Known file extension: {', '.join(SET_KNOWN_FILE_EXTENSIONS)}"
+    print("="*len(print_str))
+    print(print_str)
+    print("="*len(print_str))
+
+    print_str = f"Unknown file extension: {', '.join(SET_UNKNOWN_FILE_EXTENSIONS)}"
+    print(print_str)
+    print("="*len(print_str))
+
+    for key, value in DICT_FILES_BY_CATEGORIES.items():
+        print_str = "{:<15}| ".format(key)
+        print_str += "; ".join(value)
+        print(print_str)
+        print("-"*len(print_str))
 
 
 def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
@@ -151,9 +195,7 @@ def main():
 
         if user_path.is_dir():
             sort_dir(user_path)
-            print(SET_KNOWN_FILE_EXTENSIONS)
-            print(SET_UNKNOWN_FILE_EXTENSIONS)
-            print(DICT_FILES_BY_CATEGORIES)
+            log_print()
         else:
             print(f'{str(user_path.absolute())} is no directory')
 

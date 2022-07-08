@@ -123,20 +123,22 @@ def add_to_log(extension: str, file_name: str, categorie: str, unknown: bool = F
 
 def log_print():
 
-    print_str = f"Known file extension: {', '.join(SET_KNOWN_FILE_EXTENSIONS)}"
-    print("="*len(print_str))
-    print(print_str)
-    print("="*len(print_str))
+    str_known = f"Known file extension: {', '.join(SET_KNOWN_FILE_EXTENSIONS)}"
+    str_unknown = f"Unknown file extension: {', '.join(SET_UNKNOWN_FILE_EXTENSIONS)}"
+    separator_length = min(200, max(len(str_known), len(str_unknown)))
+    print("="*separator_length)
+    print(str_known)
+    print("="*separator_length)
+    print(str_unknown)
+    print("="*separator_length)
 
-    print_str = f"Unknown file extension: {', '.join(SET_UNKNOWN_FILE_EXTENSIONS)}"
-    print(print_str)
-    print("="*len(print_str))
-
+    print("-"*100)
     for key, value in DICT_FILES_BY_CATEGORIES.items():
+
         print_str = "{:<15}| ".format(key)
-        print_str += "; ".join(value)
+        print_str += f"\n{' '*15}| ".join(value)
         print(print_str)
-        print("-"*len(print_str))
+        print("-"*100)
 
 
 def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):

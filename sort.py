@@ -5,103 +5,67 @@ import re
 import shutil
 
 
-def images_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
-
-    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
+def processing_file(path: pathlib.Path, position_of_processed_files: int, folder_name: str, rename=True, archive=False):
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
-    new_name = normalize(path.stem)
-    try:
-        new_path = path.rename(folder.joinpath(new_name + path.suffix))
-    except FileExistsError:
-        print(f'failed to write file {path.name}')
+
+    if rename:
+        new_name = normalize(path.stem)
     else:
-        add_to_log(path.suffix, path.name, folder_name)
+        new_name = path.stem
+
+    if archive:
+        try:
+            shutil.unpack_archive(path, folder.joinpath(new_name))
+        except FileExistsError:
+            print(f'failed to extract archive {path.name}')
+        else:
+            add_to_log(path.suffix, path.name, folder_name)
+            try:
+                path.unlink()
+            except FileExistsError:
+                print(f'failed to delete file {path.name}')
+    else:
+        try:
+            new_path = path.rename(folder.joinpath(new_name + path.suffix))
+        except FileExistsError:
+            print(f'failed to write file {path.name}')
+        else:
+            add_to_log(path.suffix, path.name, folder_name)
+
+
+def images_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
+
+    processing_file(path, position_of_processed_files, folder_name)
 
 
 def video_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-
-    folder = path.parents[position_of_processed_files].joinpath(folder_name)
-    if not folder.exists():
-        folder.mkdir()
-    new_name = normalize(path.stem)
-    try:
-        new_path = path.rename(folder.joinpath(new_name + path.suffix))
-    except FileExistsError:
-        print(f'failed to write file {path.name}')
-    else:
-        add_to_log(path.suffix, path.name, folder_name)
+    processing_file(path, position_of_processed_files, folder_name)
 
 
 def documents_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-
-    folder = path.parents[position_of_processed_files].joinpath(folder_name)
-    if not folder.exists():
-        folder.mkdir()
-    new_name = normalize(path.stem)
-    try:
-        new_path = path.rename(folder.joinpath(new_name + path.suffix))
-    except FileExistsError:
-        print(f'failed to write file {path.name}')
-    else:
-        add_to_log(path.suffix, path.name, folder_name)
+    processing_file(path, position_of_processed_files, folder_name)
 
 
 def audio_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-
-    folder = path.parents[position_of_processed_files].joinpath(folder_name)
-    if not folder.exists():
-        folder.mkdir()
-    new_name = normalize(path.stem)
-    try:
-        new_path = path.rename(folder.joinpath(new_name + path.suffix))
-    except FileExistsError:
-        print(f'failed to write file {path.name}')
-    else:
-        add_to_log(path.suffix, path.name, folder_name)
+    processing_file(path, position_of_processed_files, folder_name)
 
 
 def archives_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
-
-    folder = path.parents[position_of_processed_files].joinpath(folder_name)
-    if not folder.exists():
-        folder.mkdir()
-    new_name = normalize(path.stem)
-    try:
-        shutil.unpack_archive(path, folder.joinpath(new_name))
-    except FileExistsError:
-        print(f'failed to extract archive {path.name}')
-    else:
-        add_to_log(path.suffix, path.name, folder_name)
-        try:
-            path.unlink()
-        except FileExistsError:
-            print(f'failed to delete file {path.name}')
+    processing_file(path, position_of_processed_files, folder_name,
+                    archive=True)
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    global DICT_FILES_BY_CATEGORIES, SET_UNKNOWN_FILE_EXTENSIONS
-
-    folder = path.parents[position_of_processed_files].joinpath(folder_name)
-    if not folder.exists():
-        folder.mkdir()
-    try:
-        new_path = path.rename(folder.joinpath(path.name))
-    except FileExistsError:
-        print(f'failed to write file {path.name}')
-    else:
-        add_to_log(path.suffix, path.name, folder_name, True)
+    processing_file(path, position_of_processed_files, folder_name,
+                    rename=False)
 
 
 def normalize(path_name: str) -> str:
@@ -112,6 +76,8 @@ def normalize(path_name: str) -> str:
 
 
 def add_to_log(extension: str, file_name: str, categorie: str, unknown: bool = False):
+
+    global DICT_FILES_BY_CATEGORIES, SET_KNOWN_FILE_EXTENSIONS
 
     if unknown:
         SET_UNKNOWN_FILE_EXTENSIONS.add(extension.lstrip('.').upper())

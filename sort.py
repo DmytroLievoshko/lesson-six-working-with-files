@@ -5,20 +5,38 @@ import re
 import shutil
 
 
-def processing_file(path: pathlib.Path, position_of_processed_files: int, folder_name: str, rename=True, archive=False):
+def make_new_path(path: pathlib.Path, position_of_processed_files: int, folder_name: str, unknown=False, archive=False):
 
     folder = path.parents[position_of_processed_files].joinpath(folder_name)
     if not folder.exists():
         folder.mkdir()
 
-    if rename:
-        new_name = normalize(path.stem)
+    parents_folder = path.parents[:position_of_processed_files]
+
+    new_path = folder
+    for paren in parents_folder[::-1]:
+        if paren == folder:
+            continue
+        new_path = new_path.joinpath(normalize(paren.stem))
+        if not new_path.exists():
+            new_path.mkdir()
+
+    if not unknown:
+        if archive:
+            new_path = new_path.joinpath(normalize(path.stem))
+        else:
+            new_path = new_path.joinpath(normalize(path.stem) + path.suffix)
     else:
-        new_name = path.stem
+        new_path = new_path.joinpath(path.name)
+
+    return new_path
+
+
+def mova_file(path: pathlib.Path, new_path: pathlib.Path, folder_name: str, unknown=False, archive=False):
 
     if archive:
         try:
-            shutil.unpack_archive(path, folder.joinpath(new_name))
+            shutil.unpack_archive(path, new_path)
         except FileExistsError:
             print(f'failed to extract archive {path.name}')
         else:
@@ -29,43 +47,51 @@ def processing_file(path: pathlib.Path, position_of_processed_files: int, folder
                 print(f'failed to delete file {path.name}')
     else:
         try:
-            new_path = path.rename(folder.joinpath(new_name + path.suffix))
+            new_path = shutil.move(path, new_path)
         except FileExistsError:
             print(f'failed to write file {path.name}')
         else:
-            add_to_log(path.suffix, path.name, folder_name)
+            add_to_log(path.suffix, path.name, folder_name, unknown)
 
 
 def images_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name)
+    new_path = make_new_path(path, position_of_processed_files, folder_name)
+    mova_file(path, new_path, folder_name)
 
 
 def video_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name)
+    new_path = make_new_path(path, position_of_processed_files, folder_name)
+    mova_file(path, new_path, folder_name)
 
 
 def documents_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name)
+    new_path = make_new_path(path, position_of_processed_files, folder_name)
+    mova_file(path, new_path, folder_name)
 
 
 def audio_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name)
+    new_path = make_new_path(path, position_of_processed_files, folder_name)
+    mova_file(path, new_path, folder_name)
 
 
 def archives_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name,
-                    archive=True)
+    new_path = make_new_path(path, position_of_processed_files, folder_name,
+                             archive=True)
+    mova_file(path, new_path, folder_name,
+              archive=True)
 
 
 def unknown_processing(path: pathlib.Path, position_of_processed_files: int, folder_name: str):
 
-    processing_file(path, position_of_processed_files, folder_name,
-                    rename=False)
+    new_path = make_new_path(path, position_of_processed_files, folder_name,
+                             unknown=True)
+    mova_file(path, new_path, folder_name,
+              unknown=True)
 
 
 def normalize(path_name: str) -> str:
@@ -91,20 +117,20 @@ def log_print():
 
     str_known = f"Known file extension: {', '.join(SET_KNOWN_FILE_EXTENSIONS)}"
     str_unknown = f"Unknown file extension: {', '.join(SET_UNKNOWN_FILE_EXTENSIONS)}"
-    separator_length = min(200, max(len(str_known), len(str_unknown)))
+    separator_length = min(80, max(len(str_known), len(str_unknown)))
     print("="*separator_length)
     print(str_known)
     print("="*separator_length)
     print(str_unknown)
     print("="*separator_length)
 
-    print("-"*100)
+    print("-"*80)
     for key, value in DICT_FILES_BY_CATEGORIES.items():
 
         print_str = "{:<15}| ".format(key)
         print_str += f"\n{' '*15}| ".join(value)
         print(print_str)
-        print("-"*100)
+        print("-"*80)
 
 
 def sort_dir(path: pathlib.Path, position_of_processed_files: int = 0):
